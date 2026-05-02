@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopFlow | AI-Powered Shopping</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* --- CSS VARIABLES & RESET --- */
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --white: #ffffff;
+            --danger: #ef4444;
+            --glass: rgba(255, 255, 255, 0.95);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            overflow-x: hidden;
+        }
+
+        /* --- UTILITIES --- */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary { background: var(--primary); color: var(--white); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-outline { border: 2px solid var(--primary); color: var(--primary); background: transparent; }
+        .btn-outline:hover { background: var(--primary); color: var(--white); }
+        .btn-danger { background: var(--danger); color: var(--white); }
+        .hidden { display: none !important; }
+
+        /* --- HEADER --- */
+        header {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .nav-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 5px; text-decoration: none; }
+        
+        .nav-links { display: flex; gap: 20px; align-items: center; transition: var(--transition); }
+        .nav-links a { text-decoration: none; color: var(--dark); font-weight: 500; transition: var(--transition); }
+        .nav-links a:hover { color: var(--primary); }
+
+        .header-actions { display: flex; gap: 15px; align-items: center; }
+        
+        .menu-toggle { display: none; font-size: 1.5rem; cursor: pointer; color: var(--dark); }
+
+        .cart-icon { position: relative; cursor: pointer; display: flex; align-items: center; }
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.7rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* --- WEATHER WIDGET --- */
+        .weather-widget {
+            background: #e0f2fe;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #0369a1;
+        }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            margin-top: 70px;
+            height: 80vh;
+            min-height: 500px;
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
+
+        .hero-content h1 { font-size: 3.5rem; margin-bottom: 20px; animation: slideUp 0.8s ease; }
+        .hero-content p { font-size: 1.2rem; margin-bottom: 30px; animation: slideUp 1s ease; max-width: 600px; margin-left: auto; margin-right: auto; }
+
+        /* --- SECTIONS (Shop, Categories, About) --- */
+        .section-padding { padding: 80px 0; }
+        .section-title { text-align: center; margin-bottom: 50px; font-size: 2.2rem; color: var(--dark); }
+        
+        /* CATEGORIES SECTION */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .category-card {
+            position: relative;
+            height: 250px;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+        .category-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .category-card:hover img { transform: scale(1.1); }
+        .category-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.3s;
+        }
+        .category-card:hover .category-overlay { background: rgba(0,0,0,0.6); }
+        .category-overlay h3 { color: white; font-size: 1.8rem; letter-spacing: 1px; }
+
+        /* ABOUT SECTION */
+        .about-content {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+        .about-text { flex: 1; }
+        .about-text p { line-height: 1.8; color: #4b5563; margin-bottom: 20px; }
+        .about-image { flex: 1; border-radius: 12px; overflow: hidden; }
+        .about-image img { width: 100%; height: auto; display: block; }
+
+        /* SHOP FILTERS & GRID */
+        .filters { display: flex; justify-content: center; gap: 10px; margin-bottom: 40px; flex-wrap: wrap; }
+        .filter-btn { padding: 8px 20px; border-radius: 20px; background: white; border: 1px solid #ddd; cursor: pointer; font-weight: 500; transition: var(--transition); }
+        .filter-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+
+        .product-img-wrapper { height: 250px; overflow: hidden; position: relative; }
+        .product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+        .product-card:hover .product-img { transform: scale(1.1); }
+
+        .product-info { padding: 20px; display: flex; flex-direction: column; flex: 1; }
+        .product-category { font-size: 0.8rem; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; }
+        .product-title { font-size: 1.1rem; margin: 5px 0 10px; font-weight: 700; }
+        .product-price { font-size: 1.2rem; color: var(--primary); font-weight: 700; }
+        .product-rating { color: var(--accent); margin-bottom: auto; font-size: 0.9rem; }
+
+        /* --- MODALS (Login, Signup, Cart, Checkout) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+        .modal-overlay.open { opacity: 1; visibility: visible; }
+
+        .modal {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            transform: scale(0.9);
+            transition: var(--transition);
+            position: relative;
+        }
+        .modal-overlay.open .modal { transform: scale(1); }
+        .close-modal { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 1.2rem; color: #6b7280; transition: color 0.3s; }
+        .close-modal:hover { color: var(--danger); }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem; color: #374151; }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+
+        /* --- CART SIDEBAR --- */
+        .cart-sidebar {
+            position: fixed;
+            top: 0; right: -400px;
+            width: 350px;
+            height: 100%;
+            background: white;
+            z-index: 2001;
+            box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+        .cart-sidebar.open { right: 0; }
+        
+        .cart-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .cart-items { flex: 1; overflow-y: auto; padding: 20px; }
+        
+        .cart-item { display: flex; gap: 15px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        .cart-item img { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; }
+        .item-details { flex: 1; }
+        .item-details h4 { font-size: 0.95rem; margin-bottom: 5px; color: var(--dark); }
+        .item-controls { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+        .qty-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #ddd; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .qty-btn:hover { background: #f3f4f6; }
+        
+        .cart-footer { padding: 20px; border-top: 1px solid #eee; background: #f9fafb; }
+        .cart-total { display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 700; margin-bottom: 15px; }
+
+        /* --- CHECKOUT --- */
+        .checkout-modal { max-width: 500px; }
+        .payment-methods { display: flex; gap: 10px; margin-bottom: 20px; }
+        .payment-card { 
+            flex: 1; 
+            border: 2px solid #e5e7eb; 
+            padding: 15px 10px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            text-align: center;
+            transition: var(--transition);
+        }
+        .payment-card:hover { border-color: #cbd5e1; }
+        .payment-card.selected { border-color: var(--primary); background: #eff6ff; }
+        .payment-card p { margin-top: 8px; font-weight: 500; font-size: 0.9rem; }
+
+        /* --- AI CHATBOT --- */
+        .chatbot-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+            transition: var(--transition);
+            z-index: 100;
+        }
+        .chatbot-btn:hover { transform: scale(1.1); }
+
+        .chat-window {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            z-index: 99;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: translateY(20px);
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+        .chat-window.open { transform: translateY(0); opacity: 1; visibility: visible; }
+
+        .chat-header { background: var(--primary); color: white; padding: 15px 20px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; background: #f9fafb; display: flex; flex-direction: column; gap: 10px; }
+        
+        .message { max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 0.9rem; line-height: 1.4; }
+        .bot-msg { background: white; border: 1px solid #e5e7eb; align-self: flex-start; border-bottom-left-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .user-msg { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+
+        .chat-input-area { padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px; background: white; }
+        .chat-input-area input { flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 20px; outline: none; transition: border-color 0.3s; }
+        .chat-input-area input:focus { border-color: var(--primary); }
+        .chat-input-area button { border-radius: 50%; width: 40px; height: 40px; padding: 0; }
+
+        /* --- FOOTER --- */
+        footer { background: var(--dark); color: white; padding: 60px 0 20px; margin-top: auto; }
+        .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 40px; margin-bottom: 40px; }
+        .footer-col h3 { margin-bottom: 20px; color: var(--secondary); font-size: 1.2rem; }
+        .footer-col ul { list-style: none; }
+        .footer-col ul li { margin-bottom: 12px; }
+        .footer-col ul li a { color: #9ca3af; text-decoration: none; transition: 0.3s; }
+        .footer-col ul li a:hover { color: white; padding-left: 5px; }
+        
+        .social-links { display: flex; gap: 15px; }
+        .social-links a { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; color: white; transition: 0.3s; }
+        .social-links a:hover { background: var(--secondary); transform: translateY(-3px); }
+
+        /* --- ANIMATIONS --- */
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .toast {
+            position: fixed;
+            top: 85px;
+            right: 20px;
+            background: var(--dark);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 8px;
+            z-index: 3000;
+            box-shadow: var(--shadow);
+            animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+        @keyframes slideInRight { from { transform: translateX(120%); } to { transform: translateX(0); } }
+
+        /* --- RESPONSIVE DESIGN --- */
+        @media (max-width: 992px) {
+            .about-content { flex-direction: column; text-align: center; }
+            .hero-content h1 { font-size: 2.8rem; }
+        }
+
+        @media (max-width: 768px) {
+            .menu-toggle { display: block; }
+            
+            /* Mobile Navigation */
+            .nav-links {
+                position: absolute;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background: white;
+                flex-direction: column;
+                padding: 0;
+                box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+                max-height: 0;
+                overflow: hidden;
+            }
+            .nav-links.active { max-height: 300px; padding: 20px 0; }
+            .nav-links a { width: 100%; text-align: center; padding: 10px 0; }
+
+            .weather-widget { display: none; } /* Hide weather on small screens to save space */
+            
+            .hero { padding: 100px 20px 60px; height: auto; min-height: 60vh; }
+            .hero-content h1 { font-size: 2.2rem; }
+            
+            .cart-sidebar { width: 100%; right: -100%; }
+            
+            /* Chat window mobile adjustments */
+            .chat-window {
+                width: calc(100% - 40px);
+                right: 20px;
+                bottom: 100px;
+                height: 450px;
+                max-height: 60vh;
+            }
+
+            .section-title { font-size: 1.8rem; }
+        }
+
+        @media (max-width: 480px) {
+            .checkout-modal { padding: 20px; }
+            .payment-methods { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container nav-wrapper">
+            <a href="#home" class="logo">
+                <i class="fas fa-shopping-bag"></i> ShopFlow
+            </a>
+            
+            <div class="nav-links" id="nav-menu">
+                <a href="#home">Home</a>
+                <a href="#categories">Categories</a>
+                <a href="#shop">Shop</a>
+                <a href="#about">About</a>
+            </div>
+
+            <div class="header-actions">
+                <div id="weather-display" class="weather-widget">
+                    <i class="fas fa-spinner fa-spin"></i> Loading...
+                </div>
+                
+                <div class="cart-icon" onclick="toggleCart()">
+                    <i class="fas fa-shopping-cart fa-lg"></i>
+                    <span class="cart-badge" id="cart-count">0</span>
+                </div>
+
+                <button class="btn btn-primary" id="auth-btn" onclick="openLogin()">Login</button>
+                
+                <div id="user-profile" class="hidden" style="display: flex; align-items: center; gap: 10px;">
+                    <span id="username-display" style="font-weight: 600; font-size: 0.9rem;"></span>
+                    <i class="fas fa-sign-out-alt" style="cursor: pointer; color: var(--danger); font-size: 1.2rem;" onclick="logout()" title="Logout"></i>
+                </div>
+
+                <div class="menu-toggle" onclick="toggleMenu()">
+                    <i class="fas fa-bars"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="hero" id="home">
+        <div class="container hero-content">
+            <h1>Style Meets Technology</h1>
+            <p>Experience the future of shopping with AI-powered recommendations, secure payments, and seamless checkout.</p>
+            <a href="#shop" class="btn btn-primary" style="text-decoration: none; padding: 12px 28px; font-size: 1.1rem;">
+                Start Shopping <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- CATEGORIES SECTION -->
+    <section class="section-padding" id="categories" style="background: white;">
+        <div class="container">
+            <h2 class="section-title">Shop by Category</h2>
+            <div class="categories-grid">
+                <div class="category-card" onclick="filterAndScroll('electronics')">
+                    <img src="https://loremflickr.com/600/400/technology" alt="Electronics">
+                    <div class="category-overlay">
+                        <h3>Electronics</h3>
+                    </div>
+                </div>
+                <div class="category-card" onclick="filterAndScroll('fashion')">
+                    <img src="https://loremflickr.com/600/400/fashion" alt="Fashion">
+                    <div class="category-overlay">
+                        <h3>Fashion</h3>
+                    </div>
+                </div>
+                <div class="category-card" onclick="filterAndScroll('home')">
+                    <img src="https://loremflickr.com/600/400/interior" alt="Home">
+                    <div class="category-overlay">
+                        <h3>Home Decor</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SHOP SECTION -->
+    <section class="container section-padding" id="shop">
+        <h2 class="section-title">Featured Products</h2>
+        
+        <div class="filters">
+            <button class="filter-btn active" id="btn-all" onclick="filterProducts('all')">All Products</button>
+            <button class="filter-btn" id="btn-electronics" onclick="filterProducts('electronics')">Electronics</button>
+            <button class="filter-btn" id="btn-fashion" onclick="filterProducts('fashion')">Fashion</button>
+            <button class="filter-btn" id="btn-home" onclick="filterProducts('home')">Home & Living</button>
+        </div>
+
+        <div class="product-grid" id="product-grid">
+            <!-- Products injected by JS -->
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section class="section-padding" id="about" style="background: #f8fafc;">
+        <div class="container">
+            <h2 class="section-title">Why Choose ShopFlow?</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <h3 style="margin-bottom: 15px; font-size: 1.5rem; color: var(--primary);">Next Generation E-Commerce</h3>
+                    <p>ShopFlow integrates state-of-the-art AI technology to bring you personalized recommendations tailored perfectly to your lifestyle. We believe that shopping online should be intuitive, secure, and completely frictionless.</p>
+                    <p>With an ever-expanding catalog of premium electronics, cutting-edge fashion, and minimalist home decor, our mission is to deliver quality directly to your doorstep. Got a question? Our AI assistant is available 24/7 in the bottom right corner.</p>
+                    <ul style="list-style: none; margin-top: 20px;">
+                        <li style="margin-bottom: 10px;"><i class="fas fa-check-circle" style="color: var(--secondary); margin-right: 10px;"></i> Fast, secure checkout process</li>
+                        <li style="margin-bottom: 10px;"><i class="fas fa-check-circle" style="color: var(--secondary); margin-right: 10px;"></i> AI-driven product curation</li>
+                        <li style="margin-bottom: 10px;"><i class="fas fa-check-circle" style="color: var(--secondary); margin-right: 10px;"></i> 30-day hassle-free returns</li>
+                    </ul>
+                </div>
+                <div class="about-image">
+                    <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="About ShopFlow">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI CHATBOT -->
+    <div class="chatbot-btn" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+    </div>
+    <div class="chat-window" id="chat-window">
+        <div class="chat-header">
+            <span><i class="fas fa-robot"></i> AI Assistant</span>
+            <i class="fas fa-times" style="cursor:pointer;" onclick="toggleChat()"></i>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot-msg">Hello! 👋 I'm your ShopFlow assistant. Ask me about our shipping policies, returns, or accepted payments.</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Type your question..." onkeypress="handleChat(event)">
+            <button class="btn btn-primary" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- CART SIDEBAR -->
+    <div class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header">
+            <h3>Your Shopping Cart</h3>
+            <i class="fas fa-times" style="cursor: pointer; font-size: 1.2rem; color: #6b7280;" onclick="toggleCart()"></i>
+        </div>
+        <div class="cart-items" id="cart-items">
+            <p style="text-align: center; color: #888; margin-top: 40px;"><i class="fas fa-shopping-cart fa-3x" style="color: #ddd; margin-bottom: 15px; display: block;"></i>Your cart is empty.</p>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Subtotal:</span>
+                <span id="cart-total-price">$0.00</span>
+            </div>
+            <button class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="openCheckout()">
+                Proceed to Checkout
+            </button>
+        </div>
+    </div>
+
+    <!-- LOGIN MODAL -->
+    <div class="modal-overlay" id="login-modal">
+        <div class="modal">
+            <i class="fas fa-times close-modal" onclick="closeModals()"></i>
+            <h2 style="margin-bottom: 25px; text-align: center;">Welcome Back</h2>
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="login-email" required placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-pass" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Login securely</button>
+                <p style="margin-top: 20px; text-align: center; font-size: 0.95rem; color: #4b5563;">
+                    New to ShopFlow? <a href="javascript:void(0)" style="color: var(--primary); font-weight: 600; text-decoration: none;" onclick="switchAuth('signup')">Create an account</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- SIGNUP MODAL -->
+    <div class="modal-overlay" id="signup-modal">
+        <div class="modal">
+            <i class="fas fa-times close-modal" onclick="closeModals()"></i>
+            <h2 style="margin-bottom: 25px; text-align: center;">Create Account</h2>
+            <form id="signup-form" onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="signup-name" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="signup-email" required placeholder="you@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="signup-pass" required placeholder="Create a strong password">
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">Sign Up</button>
+                <p style="margin-top: 20px; text-align: center; font-size: 0.95rem; color: #4b5563;">
+                    Already have an account? <a href="javascript:void(0)" style="color: var(--primary); font-weight: 600; text-decoration: none;" onclick="switchAuth('login')">Log in</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- CHECKOUT MODAL -->
+    <div class="modal-overlay" id="checkout-modal">
+        <div class="modal checkout-modal">
+            <i class="fas fa-times close-modal" onclick="closeModals()"></i>
+            <h2 style="margin-bottom: 20px;">Secure Checkout</h2>
+            
+            <div class="payment-methods">
+                <div class="payment-card selected" onclick="selectPayment(this)">
+                    <i class="fas fa-credit-card fa-2x" style="color: var(--primary);"></i>
+                    <p>Credit Card</p>
+                </div>
+                <div class="payment-card" onclick="selectPayment(this)">
+                    <i class="fab fa-paypal fa-2x" style="color: #003087;"></i>
+                    <p>PayPal</p>
+                </div>
+                <div class="payment-card" onclick="selectPayment(this)">
+                    <i class="fab fa-apple fa-2x" style="color: var(--dark);"></i>
+                    <p>Apple Pay</p>
+                </div>
+            </div>
+
+            <form id="payment-form" onsubmit="processPayment(event)">
+                <div class="form-group">
+                    <label>Cardholder Name</label>
+                    <input type="text" required placeholder="Name on card">
+                </div>
+                <div class="form-group">
+                    <label>Card Number</label>
+                    <input type="text" required placeholder="0000 0000 0000 0000" maxlength="19">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Expiry Date</label>
+                        <input type="text" required placeholder="MM/YY" maxlength="5">
+                    </div>
+                    <div class="form-group">
+                        <label>Security Code (CVV)</label>
+                        <input type="password" required placeholder="123" maxlength="3">
+                    </div>
+                </div>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #4b5563;">
+                        <span>Subtotal</span>
+                        <span id="checkout-subtotal">$0.00</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; color: #4b5563; padding-bottom: 15px; border-bottom: 1px solid #e5e7eb;">
+                        <span>Shipping</span>
+                        <span>Free</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem;">
+                        <span>Total to Pay</span>
+                        <span id="checkout-total" style="color: var(--primary);">$0.00</span>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-secondary" style="width: 100%; padding: 14px; font-size: 1.1rem;">
+                    <i class="fas fa-lock"></i> Pay Securely
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h3 style="color: white; font-size: 1.5rem; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-shopping-bag" style="color: var(--primary);"></i> ShopFlow
+                    </h3>
+                    <p style="color: #9ca3af; line-height: 1.6;">Your ultimate destination for premium tech, curated fashion, and modern home essentials.</p>
+                </div>
+                <div class="footer-col">
+                    <h3>Explore</h3>
+                    <ul>
+                        <li><a href="#home">Homepage</a></li>
+                        <li><a href="#categories">Our Categories</a></li>
+                        <li><a href="#shop">Latest Products</a></li>
+                        <li><a href="#about">About ShopFlow</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Customer Care</h3>
+                    <ul>
+                        <li><a href="javascript:void(0)" onclick="toggleChat()">Help Center & FAQ</a></li>
+                        <li><a href="javascript:void(0)">Returns & Exchanges</a></li>
+                        <li><a href="javascript:void(0)">Shipping Information</a></li>
+                        <li><a href="javascript:void(0)">Track Your Order</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3>Connect With Us</h3>
+                    <div class="social-links">
+                        <a href="javascript:void(0)"><i class="fab fa-facebook-f"></i></a>
+                        <a href="javascript:void(0)"><i class="fab fa-twitter"></i></a>
+                        <a href="javascript:void(0)"><i class="fab fa-instagram"></i></a>
+                        <a href="javascript:void(0)"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                    <p style="color: #9ca3af; margin-top: 20px; font-size: 0.9rem;">
+                        <i class="fas fa-envelope" style="margin-right: 5px;"></i> support@shopflow.com
+                    </p>
+                </div>
+            </div>
+            <div style="text-align: center; border-top: 1px solid #374151; padding-top: 25px; color: #9ca3af; font-size: 0.9rem;">
+                <p>&copy; 2024 ShopFlow Inc. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        /* --- MOCK DATABASE --- */
+        const PRODUCTS = [
+            { id: 1, name: "Wireless ANC Headphones", price: 199.99, category: "electronics", image: "https://loremflickr.com/500/500/headphones", rating: 4.8 },
+            { id: 2, name: "Smart Watch Series X", price: 249.50, category: "electronics", image: "https://loremflickr.com/500/500/smartwatch", rating: 4.5 },
+            { id: 3, name: "Vintage Denim Jacket", price: 89.99, category: "fashion", image: "https://loremflickr.com/500/500/denimjacket", rating: 4.2 },
+            { id: 4, name: "Minimalist Lounge Sofa", price: 599.00, category: "home", image: "https://loremflickr.com/500/500/sofa", rating: 4.9 },
+            { id: 5, name: "4K Action Camera Ultra", price: 129.99, category: "electronics", image: "https://loremflickr.com/500/500/actioncamera", rating: 4.6 },
+            { id: 6, name: "Athletic Running Sneakers", price: 110.00, category: "fashion", image: "https://loremflickr.com/500/500/sneakers", rating: 4.7 },
+            { id: 7, name: "Modern Ceramic Vase", price: 45.00, category: "home", image: "https://loremflickr.com/500/500/vase", rating: 4.3 },
+            { id: 8, name: "RGB Mechanical Keyboard", price: 150.00, category: "electronics", image: "https://loremflickr.com/500/500/mechanicalkeyboard", rating: 4.8 },
+            { id: 9, name: "Smart Home Assistant Speaker", price: 79.99, category: "electronics", image: "https://loremflickr.com/500/500/smartspeaker", rating: 4.4 },
+            { id: 10, name: "Premium Leather Satchel", price: 120.00, category: "fashion", image: "https://loremflickr.com/500/500/leatherbag", rating: 4.9 },
+            { id: 11, name: "Ergonomic Mesh Office Chair", price: 299.99, category: "home", image: "https://loremflickr.com/500/500/officechair", rating: 4.7 },
+            { id: 12, name: "True Wireless Earbuds", price: 149.99, category: "electronics", image: "https://loremflickr.com/500/500/earbuds", rating: 4.6 },
+            { id: 13, name: "Classic Polarized Aviators", price: 55.00, category: "fashion", image: "https://loremflickr.com/500/500/sunglasses", rating: 4.5 },
+            { id: 14, name: "Woven Cotton Throw Blanket", price: 35.00, category: "home", image: "https://loremflickr.com/500/500/throwblanket", rating: 4.8 },
+            { id: 15, name: "High-Capacity Power Bank", price: 39.99, category: "electronics", image: "https://loremflickr.com/500/500/powerbank", rating: 4.3 },
+            { id: 16, name: "Retro Graphic T-Shirt", price: 25.00, category: "fashion", image: "https://loremflickr.com/500/500/tshirt", rating: 4.1 },
+            { id: 17, name: "Ultrasonic Essential Oil Diffuser", price: 29.99, category: "home", image: "https://loremflickr.com/500/500/diffuser", rating: 4.5 },
+            { id: 18, name: "Pro Fitness Tracker Band", price: 49.99, category: "electronics", image: "https://loremflickr.com/500/500/fitnesstracker", rating: 4.2 }
+        ];
+
+        /* --- STATE MANAGEMENT --- */
+        let cart = JSON.parse(localStorage.getItem('shopflow_cart')) || [];
+        let currentUser = JSON.parse(localStorage.getItem('shopflow_user')) || null;
+        let users = JSON.parse(localStorage.getItem('shopflow_users_db')) || [];
+
+        /* --- INIT --- */
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProducts(PRODUCTS);
+            updateCartUI();
+            checkAuthStatus();
+            initWeather();
+            
+            // Close mobile menu on link click
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', () => {
+                    document.getElementById('nav-menu').classList.remove('active');
+                });
+            });
+        });
+
+        /* --- MOBILE MENU --- */
+        function toggleMenu() {
+            document.getElementById('nav-menu').classList.toggle('active');
+        }
+
+        /* --- PRODUCT LOGIC --- */
+        function renderProducts(products) {
+            const grid = document.getElementById('product-grid');
+            if(products.length === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">No products found.</p>';
+                return;
+            }
+            grid.innerHTML = products.map(p => `
+                <div class="product-card">
+                    <div class="product-img-wrapper">
+                        <img src="${p.image}?random=${p.id}" alt="${p.name}" class="product-img" loading="lazy" onerror="this.src='https://placehold.co/400x300?text=Image+Unavailable'">
+                    </div>
+                    <div class="product-info">
+                        <span class="product-category">${p.category}</span>
+                        <h3 class="product-title">${p.name}</h3>
+                        <div class="product-rating">
+                            ${getStars(p.rating)} <span style="color:#6b7280; font-size:0.8rem;">(${p.rating})</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                            <span class="product-price">$${p.price.toFixed(2)}</span>
+                            <button class="btn btn-outline" onclick="addToCart(${p.id})">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStars(rating) {
+            return '<i class="fas fa-star"></i>'.repeat(Math.floor(rating)) + 
+                   (rating % 1 !== 0 ? '<i class="fas fa-star-half-alt"></i>' : '');
+        }
+
+        function filterProducts(cat) {
+            // Update active buttons
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${cat}`).classList.add('active');
+
+            if (cat === 'all') renderProducts(PRODUCTS);
+            else renderProducts(PRODUCTS.filter(p => p.category === cat));
+        }
+
+        function filterAndScroll(cat) {
+            filterProducts(cat);
+            document.getElementById('shop').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        /* --- CART LOGIC --- */
+        function addToCart(id) {
+            const product = PRODUCTS.find(p => p.id === id);
+            const existing = cart.find(item => item.id === id);
+            
+            if (existing) {
+                existing.qty++;
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+            
+            saveCart();
+            updateCartUI();
+            
+            // Open cart briefly to show added item, then close (UX improvement)
+            const cartSidebar = document.getElementById('cart-sidebar');
+            if(!cartSidebar.classList.contains('open')) {
+                cartSidebar.classList.add('open');
+                setTimeout(() => { cartSidebar.classList.remove('open'); }, 2000);
+            }
+            
+            showToast(`<i class="fas fa-check-circle" style="color:var(--secondary)"></i> Added ${product.name}`);
+        }
+
+        function updateCartUI() {
+            const cartItems = document.getElementById('cart-items');
+            const cartCount = document.getElementById('cart-count');
+            const totalEl = document.getElementById('cart-total-price');
+            
+            cartCount.innerText = cart.reduce((acc, item) => acc + item.qty, 0);
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p style="text-align: center; color: #888; margin-top: 40px;"><i class="fas fa-shopping-cart fa-3x" style="color: #ddd; margin-bottom: 15px; display: block;"></i>Your cart is empty.</p>';
+                totalEl.innerText = '$0.00';
+                return;
+            }
+
+            let total = 0;
+            cartItems.innerHTML = cart.map(item => {
+                total += item.price * item.qty;
+                return `
+                <div class="cart-item">
+                    <img src="${item.image}?random=${item.id}" alt="${item.name}" onerror="this.src='https://placehold.co/70x70?text=IMG'">
+                    <div class="item-details">
+                        <h4>${item.name}</h4>
+                        <p style="color: var(--primary); font-weight: 600;">$${item.price.toFixed(2)}</p>
+                        <div class="item-controls">
+                            <button class="qty-btn" onclick="changeQty(${item.id}, -1)">-</button>
+                            <span style="width: 20px; text-align: center;">${item.qty}</span>
+                            <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+                            <i class="fas fa-trash-alt" style="color: #9ca3af; margin-left: auto; cursor: pointer; transition: 0.3s;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='#9ca3af'" onclick="removeFromCart(${item.id})"></i>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+            
+            totalEl.innerText = '$' + total.toFixed(2);
+            document.getElementById('checkout-subtotal').innerText = '$' + total.toFixed(2);
+            document.getElementById('checkout-total').innerText = '$' + total.toFixed(2);
+        }
+
+        function changeQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (item) {
+                item.qty += delta;
+                if (item.qty <= 0) removeFromCart(id);
+                else {
+                    saveCart();
+                    updateCartUI();
+                }
+            }
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(i => i.id !== id);
+            saveCart();
+            updateCartUI();
+        }
+
+        function saveCart() {
+            localStorage.setItem('shopflow_cart', JSON.stringify(cart));
+        }
+
+        function toggleCart() {
+            document.getElementById('cart-sidebar').classList.toggle('open');
+        }
+
+        /* --- AUTH LOGIC --- */
+        function checkAuthStatus() {
+            if (currentUser) {
+                document.getElementById('auth-btn').classList.add('hidden');
+                document.getElementById('user-profile').classList.remove('hidden'); 
+                document.getElementById('user-profile').style.display = 'flex'; 
+                document.getElementById('username-display').innerText = `Hi, ${currentUser.name.split(' ')[0]}`;
+            } else {
+                document.getElementById('auth-btn').classList.remove('hidden');
+                document.getElementById('user-profile').classList.add('hidden');
+                document.getElementById('user-profile').style.display = 'none';
+            }
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const pass = document.getElementById('signup-pass').value;
+
+            if (users.find(u => u.email === email)) {
+                alert('An account with this email already exists!');
+                return;
+            }
+
+            const newUser = { name, email, pass };
+            users.push(newUser);
+            localStorage.setItem('shopflow_users_db', JSON.stringify(users));
+            
+            currentUser = newUser;
+            localStorage.setItem('shopflow_user', JSON.stringify(currentUser));
+            
+            closeModals();
+            checkAuthStatus();
+            showToast(`<i class="fas fa-check-circle" style="color:var(--secondary)"></i> Account created! Welcome.`);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+
+            const user = users.find(u => u.email === email && u.pass === pass);
+            
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('shopflow_user', JSON.stringify(currentUser));
+                closeModals();
+                checkAuthStatus();
+                showToast(`<i class="fas fa-user-circle" style="color:var(--primary)"></i> Welcome back, ${user.name.split(' ')[0]}!`);
+            } else {
+                alert('Invalid email or password.');
+            }
+        }
+
+        function logout() {
+            if(confirm("Are you sure you want to log out?")) {
+                currentUser = null;
+                localStorage.removeItem('shopflow_user');
+                checkAuthStatus();
+                showToast(`<i class="fas fa-info-circle"></i> Logged out successfully`);
+            }
+        }
+
+        /* --- PAYMENT SIMULATION --- */
+        function openCheckout() {
+            if (cart.length === 0) {
+                alert("Your cart is empty! Add some products first.");
+                return;
+            }
+            if (!currentUser) {
+                alert("Please log in to complete your purchase.");
+                openLogin();
+                return;
+            }
+            toggleCart(); 
+            document.getElementById('checkout-modal').classList.add('open');
+        }
+
+        function selectPayment(el) {
+            document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        function processPayment(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Secure Payment...';
+
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Payment Successful!';
+                btn.style.background = 'var(--secondary)';
+                
+                setTimeout(() => {
+                    cart = [];
+                    saveCart();
+                    updateCartUI();
+                    closeModals();
+                    showToast(`<i class="fas fa-box" style="color:var(--secondary)"></i> Order placed! ID: #${Math.floor(10000 + Math.random()*90000)}`);
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    btn.style.background = '';
+                    e.target.reset(); // clear form
+                }, 1500);
+            }, 2500);
+        }
+
+        /* --- WEATHER API --- */
+        async function initWeather() {
+            const display = document.getElementById('weather-display');
+            let lat = 40.71, lon = -74.00; // NYC Default
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude, display), 
+                    () => fetchWeather(lat, lon, display)
+                );
+            } else {
+                fetchWeather(lat, lon, display);
+            }
+        }
+
+        async function fetchWeather(lat, lon, element) {
+            try {
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+                const data = await res.json();
+                const temp = Math.round(data.current_weather.temperature);
+                const code = data.current_weather.weathercode;
+                
+                let icon = 'fa-sun';
+                if(code > 3) icon = 'fa-cloud';
+                if(code > 50) icon = 'fa-cloud-rain';
+                if(code > 70) icon = 'fa-snowflake';
+
+                element.innerHTML = `<i class="fas ${icon}"></i> ${temp}°C`;
+            } catch (e) {
+                element.innerHTML = '<i class="fas fa-temperature-half"></i> N/A';
+            }
+        }
+
+        /* --- CHATBOT LOGIC --- */
+        const botResponses = {
+            "hello": "Hi there! 👋 How can I help you shop today?",
+            "hi": "Hello! Need help finding something?",
+            "shipping": "We offer free standard shipping on all orders. Deliveries typically take 3-5 business days.",
+            "return": "We have a 30-day hassle-free return policy. As long as the item is in original condition, we'll refund you immediately.",
+            "payment": "We accept major Credit Cards, PayPal, and Apple Pay through our secure checkout.",
+            "contact": "Our support team is available at support@shopflow.com or by calling +1-800-SHOPFLOW.",
+            "discount": "Create an account to receive exclusive discounts! Right now we have free shipping on all items.",
+            "default": "I'm still learning! Could you try asking about 'shipping', 'returns', or 'payment'?"
+        };
+
+        function toggleChat() {
+            const win = document.getElementById('chat-window');
+            win.classList.toggle('open');
+            if(win.classList.contains('open')) {
+                document.getElementById('chat-input').focus();
+            }
+        }
+
+        function handleChat(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim().toLowerCase();
+            const chatBody = document.getElementById('chat-messages');
+
+            if (!msg) return;
+
+            // Add user message
+            chatBody.innerHTML += `<div class="message user-msg">${input.value}</div>`;
+            input.value = '';
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            // Show typing indicator
+            const typingId = 'typing-' + Date.now();
+            chatBody.innerHTML += `<div class="message bot-msg" id="${typingId}"><i class="fas fa-ellipsis-h fa-fade"></i></div>`;
+            chatBody.scrollTop = chatBody.scrollHeight;
+
+            // Bot Response
+            setTimeout(() => {
+                document.getElementById(typingId).remove();
+                
+                let response = botResponses['default'];
+                for (let key in botResponses) {
+                    if (msg.includes(key)) response = botResponses[key];
+                }
+                
+                chatBody.innerHTML += `<div class="message bot-msg">${response}</div>`;
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }, 1000);
+        }
+
+        /* --- MODAL UTILS --- */
+        function openLogin() {
+            document.getElementById('login-modal').classList.add('open');
+            document.getElementById('signup-modal').classList.remove('open');
+            document.getElementById('nav-menu').classList.remove('active'); // Close mobile menu if open
+        }
+        
+        function switchAuth(type) {
+            if (type === 'signup') {
+                document.getElementById('login-modal').classList.remove('open');
+                document.getElementById('signup-modal').classList.add('open');
+            } else {
+                document.getElementById('signup-modal').classList.remove('open');
+                document.getElementById('login-modal').classList.add('open');
+            }
+        }
+
+        function closeModals() {
+            document.querySelectorAll('.modal-overlay').forEach(m => {
+                m.classList.remove('open');
+            });
+        }
+
+        function showToast(htmlContent) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = htmlContent;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.transform = 'translateX(120%)';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                closeModals();
+            }
+        }
+    </script>
+</body>
+</html>
